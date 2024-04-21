@@ -1,2 +1,3 @@
 emailId,FullName,timestamp,send_status,delivery_status_code,retry_count,error_message,delivery_duration
-avinash.mahala.am@outlook.com,Avinash,2024-04-21 00:56:07,success,Delivered,0,,0 seconds
+avinash.mahala.am@outlook.com,Avinash,2024-04-21 02:06:09,success,Delivered,0,,0 seconds
+avinash.mahala@yahoo.com,Avinash,2024-04-21 02:06:16,success,Delivered,0,,0 seconds

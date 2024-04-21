@@ -301,6 +301,8 @@ def main():
             email_send_status[email] = status
             write_email_send_status(email_send_status)
 
+
+            
             # Check if there was an error
             if status['send_status'] == 'failure':
                 error_messages.append([full_name, email, status['send_status'], status['error_message']])
