@@ -1,0 +1,2 @@
+FullName,emailId,timestamp,send_status,delivery_status_code,retry_count,error_message,delivery_duration
+Avinash,avinash.mahala.am@outlook.com,2024-04-20 19:34:24,failure,DomainEmailLimitExceeded,0,Domain email limit exceeded for outlook.com. Cannot send more than 5 emails per day to the same domain.,0 seconds
