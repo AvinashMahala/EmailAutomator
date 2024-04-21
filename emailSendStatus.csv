@@ -1,2 +1,2 @@
 FullName,emailId,timestamp,send_status,delivery_status_code,retry_count,error_message,delivery_duration
-Avinash,avinash.mahala.am@outlook.com,2024-04-20 20:22:52,failure,DomainEmailLimitExceeded,0,Domain Email Limit Exceeded for outlook.com. Limit: 2/day.,0 seconds
+Avinash,avinash.mahala.am@outlook.com,2024-04-20 21:15:46,failure,DomainEmailLimitExceeded,0,Domain Email Limit Exceeded for outlook.com. Limit: 2/day.,0 seconds
