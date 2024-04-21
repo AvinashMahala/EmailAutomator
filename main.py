@@ -272,7 +272,7 @@ def main():
     print("\nEmail sending process started.\n")
 
     sender_email = os.getenv('SENDER_EMAIL')  # Replace with sender's Yahoo email address
-    csv_file = os.getenv('CSV_FILE')  # Path to CSV file containing recipient details
+    recipientsFile = os.getenv('RECIPIENTS_FILE_PATH')  # Path to CSV file containing recipient details
     email_subject_file = os.getenv('EMAIL_SUBJECT_FILE')  # Path to text file containing email subject
     email_body_file = os.getenv('EMAIL_BODY_FILE')  # Path to text file containing email body
     attachment_path = os.getenv('ATTACHMENT_PATH')  # Path to the attachment file
@@ -284,7 +284,7 @@ def main():
     # Error messages list
     error_messages = []
     # Open CSV file and iterate over rows
-    with open(csv_file, 'r') as file:
+    with open(recipientsFile, 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
             full_name = row['fullName']
