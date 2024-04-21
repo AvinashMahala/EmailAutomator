@@ -122,10 +122,10 @@ def send_email(sender_email, recipient_email, full_name, subject, body, attachme
         if is_domain_limit_exceeded(domain_email_count, recipient_email):
             domain = recipient_email.split('@')[-1]
             domain_limit = int(os.getenv('DOMAIN_LIMIT', 4))  # Default to 4 if DOMAIN_LIMIT is not set in .env
-            error_message = f"Domain email limit exceeded for {domain}. Cannot send more than {domain_limit} emails per day to the same domain."
+            error_message = f"Domain Email Limit Exceeded for {domain}. Limit: {domain_limit}/day."
             headers = ['Full Name', 'Recipient Email', 'Send Status', 'Error Message']
             
-            print(error_message)
+            # print(error_message)
             logging.error(error_message)
             return {
                 'FullName': full_name,
