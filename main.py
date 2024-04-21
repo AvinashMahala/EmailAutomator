@@ -1,6 +1,8 @@
+import sys
 import csv
 import os
 import smtplib
+import platform
 import logging
 import time
 from email.mime.multipart import MIMEMultipart
@@ -10,8 +12,42 @@ from datetime import datetime, timedelta
 from tabulate import tabulate
 from dotenv import load_dotenv
 
-# Configure logging
-logging.basicConfig(filename='email_sender.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def generate_session_id():
+    # Generate a unique session ID based on the current timestamp
+    return datetime.now().strftime("%Y%m%d%H%M%S")
+
+def create_log_folder():
+    # Get the current year and month
+    current_year = datetime.now().strftime("%Y")
+    current_month = datetime.now().strftime("%B")
+
+    # Create the log folder if it doesn't exist
+    log_directory = os.path.join("application_logs", current_year, current_month)
+    os.makedirs(log_directory, exist_ok=True)
+
+    return log_directory
+
+# Create a directory to store log files if it doesn't exist
+# Create log folder
+log_directory = create_log_folder()
+os.makedirs(log_directory, exist_ok=True)
+
+# Get the current date
+current_date = datetime.now().strftime("%Y-%m-%d")
+
+# Generate a unique session ID
+session_id = generate_session_id()
+
+# Define the log file name with the current date
+log_file = os.path.join(log_directory, f"email_sender_{current_date}.log")
+
+# Configure logging with the dynamic log file name
+logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Log session start details
+logging.info(f"Session ID: {session_id}")
+logging.info(f"Session started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 # Function to read content from a file
 def read_file(file_path):
@@ -155,7 +191,7 @@ def send_email(sender_email, recipient_email, full_name, subject, body, attachme
 
         # Connect to Yahoo SMTP server and send email
         with smtplib.SMTP_SSL('smtp.mail.yahoo.com', 465) as server:
-            server.login(sender_email, 'qjnicfzyzkmtckdp')  # Update email and password
+            server.login(sender_email, os.getenv('SENDER_PASSWORD'))  # Update email and password
             server.send_message(message)
 
         print(f"Email sent to {recipient_email} (Recipient: {full_name}, Sender: {sender_email})")
@@ -231,14 +267,15 @@ def send_email(sender_email, recipient_email, full_name, subject, body, attachme
         }
 
 def main():
+    logging.info("---------------------------------------------------------------------------------------------------")
     logging.info("Email sending process started.")
     print("\nEmail sending process started.\n")
 
-    sender_email = 'avinash.mahala@yahoo.com'  # Replace with sender's Yahoo email address
-    csv_file = 'recipients.csv'  # Path to CSV file containing recipient details
-    email_subject_file = 'email_subject.txt'  # Path to text file containing email subject
-    email_body_file = 'email_body.txt'  # Path to text file containing email body
-    attachment_path = 'Avinash_Mahala_Resume.pdf'  # Path to the attachment file
+    sender_email = os.getenv('SENDER_EMAIL')  # Replace with sender's Yahoo email address
+    csv_file = os.getenv('CSV_FILE')  # Path to CSV file containing recipient details
+    email_subject_file = os.getenv('EMAIL_SUBJECT_FILE')  # Path to text file containing email subject
+    email_body_file = os.getenv('EMAIL_BODY_FILE')  # Path to text file containing email body
+    attachment_path = os.getenv('ATTACHMENT_PATH')  # Path to the attachment file
 
     # Read email subject and body from files
     email_subject = read_file(email_subject_file).strip()
@@ -276,6 +313,7 @@ def main():
 
     print("\nEmail sending process completed.\n")
     logging.info("Email sending process completed.")
+    logging.info("---------------------------------------------------------------------------------------------------")
 
 # Entry point of the script
 if __name__ == "__main__":
