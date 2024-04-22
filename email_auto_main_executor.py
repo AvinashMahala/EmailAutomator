@@ -11,10 +11,18 @@ from email_auto_logger import EmailAutoLogger
 from email_auto_file_manager import EmailAutoFileManager
 
 class EmailAutoMainExecutor:
+    def generate_pattern(pattern, repetitions):
+        return pattern * repetitions
+
+    PATTERN1 = generate_pattern("-", 100)
+    PATTERN2 = generate_pattern("*", 100)
+    PATTERN3 = generate_pattern("+", 100)
+    PATTERN4 = generate_pattern("~", 100)
+
     def __init__(self):
         EmailAutoLogger()
         self.logging = logging
-        self.logINFO("---------------------------------------------------------------------------------------------------")
+        self.logINFO(self.PATTERN1)
         self.logINFO("Email sending process started.")
         print("\nEmail sending process started.\n")
 
@@ -135,7 +143,7 @@ class EmailAutoMainExecutor:
 
         print("\nEmail sending process completed.\n")
         self.logINFO("Email sending process completed.")
-        self.logINFO("---------------------------------------------------------------------------------------------------")
+        self.logINFO(self.PATTERN3)
 
     def logINFO(self, message):
         self.logging.info(f"[{self.__class__.__name__}] {message}")
