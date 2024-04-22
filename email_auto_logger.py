@@ -13,11 +13,21 @@ class EmailAutoLogger:
         session_id = self.generate_session_id()
         # Define the log file name with the current date
         log_file = os.path.join(log_directory, f"email_sender_{current_date}.log")
+        self.logging=logging
         # Configure logging with the dynamic log file name
-        logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        self.logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
         # Log session start details
-        logging.info(f"Session ID: {session_id}")
-        logging.info(f"Session started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        self.logINFO(f"Session ID: {session_id}")
+        self.logINFO(f"Session started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+    def logINFO(self, message):
+        self.logging.info(f"[{self.__class__.__name__}] {message}")
+
+    def logERROR(self, message):
+        self.logging.error(f"[{self.__class__.__name__}] {message}")
+
+    def logWARNING(self, message):
+        self.logging.warning(f"[{self.__class__.__name__}] {message}")
 
     def generate_session_id(self):
         # Generate a unique session ID based on the current timestamp
