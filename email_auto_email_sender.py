@@ -4,15 +4,22 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from datetime import datetime
+import time
 
 from email_auto_domain_email_counter import EmailAutoDomainEmailCounter
 
 class EmailAutoEmailSender:
+    RETRY_MINUTES=120
     def __init__(self, logging, sender_email, sender_password):
         self.sender_email = sender_email
         self.sender_password = sender_password
         self.logging = logging
         self.eadEmailCounterObj = EmailAutoDomainEmailCounter(self.logging)
+    
+    def wait_and_retry(self, wait_time_seconds):
+        self.logINFO(f"Waiting for {wait_time_seconds} seconds before retrying...")
+        time.sleep(wait_time_seconds)
+        self.logINFO("Retry initiated.")
 
     def logINFO(self, message):
         self.logging.info(f"[{self.__class__.__name__}] {message}")
@@ -23,9 +30,18 @@ class EmailAutoEmailSender:
     def logWARNING(self, message):
         self.logging.warning(f"[{self.__class__.__name__}] {message}")
 
+    def start_action(self, action_name):
+        self.logINFO(f"Starting {action_name}...")
+
+    def action_done(self, action_name):
+        self.logINFO(f"{action_name} completed successfully.")
+
+    def action_failed(self, action_name, error_message):
+        self.logERROR(f"{action_name} failed: {error_message}")
 
     def send_email(self, recipient_email, full_name, subject, body, attachment_path, domain_email_count, domain_limit):
         try:
+            self.start_action("sending email")
             if self.eadEmailCounterObj.is_domain_limit_exceeded(domain_email_count, recipient_email, domain_limit):
                 domain = recipient_email.split('@')[-1]
                 error_message = f"Domain Email Limit Exceeded for {domain}. Limit: {domain_limit}/day."
@@ -56,7 +72,7 @@ class EmailAutoEmailSender:
                 server.login(self.sender_email, self.sender_password)
                 server.send_message(message)
 
-            self.logINFO(f"Email sent to {recipient_email}")
+            self.action_done("sending email")
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
             self.eadEmailCounterObj.write_domain_email_count(domain_email_count)
@@ -72,15 +88,18 @@ class EmailAutoEmailSender:
             }
         except smtplib.SMTPAuthenticationError as e:
             error_message = f"SMTP authentication error: {e}"
-            self.logERROR(error_message)
+            self.action_failed("sending email", error_message)
+            self.wait_and_retry(self.RETRY_MINUTES)
             return self.handle_send_error(recipient_email, full_name, error_message)
         except smtplib.SMTPException as e:
             error_message = f"SMTP error: {e}"
-            self.logERROR(error_message)
+            self.action_failed("sending email", error_message)
+            self.wait_and_retry(self.RETRY_MINUTES)
             return self.handle_send_error(recipient_email, full_name, error_message)
         except Exception as e:
             error_message = f"Error sending email to {recipient_email}: {e}"
-            self.logERROR(error_message)
+            self.action_failed("sending email", error_message)
+            self.wait_and_retry(self.RETRY_MINUTES)
             return self.handle_send_error(recipient_email, full_name, error_message)
 
     def handle_send_error(self, recipient_email, full_name, error_message):

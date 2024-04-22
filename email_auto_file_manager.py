@@ -1,3 +1,5 @@
+import logging
+
 class EmailAutoFileManager:
     def __init__(self, logging):
         self.logging = logging
@@ -13,8 +15,11 @@ class EmailAutoFileManager:
 
     def read_file(self, file_path):
         try:
+            self.logINFO(f"Reading file: {file_path}")
             with open(file_path, 'r') as file:
-                return file.read()
+                file_content = file.read()
+            self.logINFO(f"Successfully read file: {file_path}")
+            return file_content
         except FileNotFoundError as e:
             error_message = f"File '{file_path}' not found: {e}"
             self.logERROR(error_message)

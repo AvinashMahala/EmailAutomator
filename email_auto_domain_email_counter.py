@@ -20,9 +20,19 @@ class EmailAutoDomainEmailCounter:
     def logWARNING(self, message):
         self.logging.warning(f"[{self.__class__.__name__}] {message}")
 
+    def start_action(self, action_name):
+        self.logINFO(f"Starting {action_name}...")
+
+    def action_done(self, action_name):
+        self.logINFO(f"{action_name} completed successfully.")
+
+    def action_failed(self, action_name, error_message):
+        self.logERROR(f"{action_name} failed: {error_message}")
+
     def read_domain_email_count(self):
         domain_email_count = {}
         try:
+            self.start_action("reading domain email count file")
             if os.path.exists(EmailAutoDomainEmailCounter.DOMAIN_EMAIL_COUNT_FILE):
                 with open(EmailAutoDomainEmailCounter.DOMAIN_EMAIL_COUNT_FILE, 'r') as file:
                     reader = csv.DictReader(file)
@@ -31,15 +41,16 @@ class EmailAutoDomainEmailCounter:
                             'date': row['date'],
                             'count': int(row['count'])
                         }
-            self.logINFO("Successfully read domain email count file.")
+                self.action_done("reading domain email count file")
+            else:
+                self.logINFO("Domain email count file not found.")
         except (FileNotFoundError, PermissionError) as e:
-            error_message = f"Error reading domain email count file: {e}"
-            self.logging.error(error_message)
-            self.logINFO(error_message)
+            self.action_failed("reading domain email count file", str(e))
         return domain_email_count
 
     def write_domain_email_count(self, domain_email_count):
         try:
+            self.start_action("writing to domain email count file")
             with open(EmailAutoDomainEmailCounter.DOMAIN_EMAIL_COUNT_FILE, 'w', newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=EmailAutoDomainEmailCounter.DOMAIN_EMAIL_COUNT_FIELDS)
                 writer.writeheader()
@@ -49,10 +60,9 @@ class EmailAutoDomainEmailCounter:
                         'date': data['date'],
                         'count': data['count']
                     })
-            self.logINFO("Successfully wrote to domain email count file.")
+            self.action_done("writing to domain email count file")
         except (FileNotFoundError, PermissionError) as e:
-            error_message = f"Error writing domain email count file: {e}"
-            self.logERROR(error_message)
+            self.action_failed("writing to domain email count file", str(e))
 
     def track_domain_email_count(self, email_send_status_dict, recipient_email, domain_email_count):
         domain = recipient_email.split('@')[-1]
@@ -74,12 +84,12 @@ class EmailAutoDomainEmailCounter:
     
     def add_to_blacklist(self, domain):
         try:
+            self.start_action("adding domain to blacklist")
             with open(self.BLACKLIST_FILE, 'a') as file:
                 file.write(domain + '\n')
-            self.logWARNING(f"Domain {domain} added to blacklist.")
+            self.action_done("adding domain to blacklist")
         except Exception as e:
-            error_message = f"Error adding domain {domain} to blacklist: {e}"
-            self.logERROR(error_message)
+            self.action_failed("adding domain to blacklist", str(e))
 
     def check_and_blacklist_domain(self, recipient_email, domain_email_count, domain_limit):
         domain = recipient_email.split('@')[-1]

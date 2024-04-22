@@ -14,12 +14,12 @@ class EmailAutoDomainBlacklist:
     def logWARNING(self, message):
         self.logging.warning(f"[{self.__class__.__name__}] {message}")
 
-
     def read_blacklist_domains(self):
         try:
             self.logINFO("Reading blacklist file...")
             with open(self.blacklist_file, 'r') as file:
                 blacklist_domains = {line.strip() for line in file}
+            self.logINFO("Successfully read blacklist file.")
             return blacklist_domains
         except (FileNotFoundError, PermissionError) as e:
             error_message = f"Error reading blacklist file: {e}"

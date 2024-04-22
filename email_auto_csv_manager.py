@@ -21,7 +21,6 @@ class EmailAutoCSVManager:
     def logWARNING(self, message):
         self.logging.warning(f"[{self.__class__.__name__}] {message}")
 
-
     def read_email_send_status(self):
         try:
             self.logINFO("Reading email send status file...")
