@@ -4,6 +4,7 @@ import logging
 from tabulate import tabulate
 from dotenv import load_dotenv
 from email_auto_csv_manager import EmailAutoCSVManager
+from email_auto_domain_blacklist import EmailAutoDomainBlacklist
 from email_auto_domain_email_counter import EmailAutoDomainEmailCounter
 from email_auto_email_sender import EmailAutoEmailSender
 from email_auto_logger import EmailAutoLogger
@@ -24,7 +25,9 @@ class EmailAutoMainExecutor:
         self.email_subject_file = os.getenv('EMAIL_SUBJECT_FILE')
         self.email_body_file = os.getenv('EMAIL_BODY_FILE')
         self.attachment_path = os.getenv('ATTACHMENT_PATH')
-        self.domain_limit = int(os.getenv('DOMAIN_LIMIT', 10))
+        self.domain_limit = int(os.getenv('DOMAIN_LIMIT', 10))-1
+        self.blacklist_file = os.getenv('BLACKLIST_FILE_PATH')  # Path to the blacklist file
+
 
         self.email_subject = EmailAutoFileManager.read_file(self.email_subject_file).strip()
         self.email_body_template = EmailAutoFileManager.read_file(self.email_body_file).strip()
@@ -32,16 +35,31 @@ class EmailAutoMainExecutor:
         self.error_messages = []
         eaCSVMgrObj = EmailAutoCSVManager()
         email_send_status_dict = eaCSVMgrObj.read_email_send_status()
-        eaEmailSenderObj = EmailAutoEmailSender(self.sender_email, self.sender_password)
-        domain_email_counter = EmailAutoDomainEmailCounter()
+        eaEmailSenderObj = EmailAutoEmailSender(logging, self.sender_email, self.sender_password)
+        domain_email_counter = EmailAutoDomainEmailCounter(logging)
         domain_email_count = domain_email_counter.read_domain_email_count()
+
+        domain_blacklist = EmailAutoDomainBlacklist(logging,self.blacklist_file)
+        blacklist_domains = domain_blacklist.read_blacklist_domains()
+
+
         with open(self.recipientsFile, 'r') as file:
             reader = csv.DictReader(file)
             for row in reader:
                 full_name = row['fullName']
                 recipient_email = row['emailId']
+
+                # Check if recipient's domain is in the blacklist
+                recipient_domain = recipient_email.split('@')[-1]
+                if recipient_domain in blacklist_domains:
+                    logging.warning(f"Skipping email to {recipient_email} as the domain is in the blacklist.")
+                    continue
+                
                 domain_email_count = domain_email_counter.track_domain_email_count(email_send_status_dict,recipient_email, domain_email_count)
                 
+                # Check and blacklist domain if limit exceeded
+                domain_email_counter.check_and_blacklist_domain(recipient_email, domain_email_count, self.domain_limit)
+
                 # Check if email is already sent
                 if recipient_email in email_send_status_dict:
                     status = email_send_status_dict[recipient_email]['send_status']
@@ -58,7 +76,7 @@ class EmailAutoMainExecutor:
                             self.email_body_template = self.email_body_template.replace('[Placeholder]', first_name)
                             status = eaEmailSenderObj.send_email(recipient_email, full_name, self.email_subject,
                                                      self.email_body_template, self.attachment_path,
-                                                     domain_email_count, self.domain_limit-1)
+                                                     domain_email_count, self.domain_limit)
                             email_send_status_dict[recipient_email] = status
                         except Exception as e:
                             error_message = f"Error sending email to {recipient_email}: {e}"
@@ -79,7 +97,7 @@ class EmailAutoMainExecutor:
                     self.email_body_template = self.email_body_template.replace('[Placeholder]', first_name)
                     status = eaEmailSenderObj.send_email(recipient_email, full_name, self.email_subject,
                                                      self.email_body_template, self.attachment_path,
-                                                     domain_email_count, self.domain_limit-1)
+                                                     domain_email_count, self.domain_limit)
                     email_send_status_dict[recipient_email] = status
                     logging.info(f"Status for email {recipient_email}: {status}")
                 except Exception as e:
@@ -97,7 +115,7 @@ class EmailAutoMainExecutor:
                 
                 # status = eaEmailSenderObj.send_email(recipient_email, full_name, self.email_subject,
                 #                                      self.email_body_template, self.attachment_path,
-                #                                      domain_email_count, self.domain_limit-1)
+                #                                      domain_email_count, self.domain_limit)
                 email_send_status_dict[recipient_email] = status
                 eaCSVMgrObj.write_email_send_status()
 

@@ -8,14 +8,16 @@ from datetime import datetime
 from email_auto_domain_email_counter import EmailAutoDomainEmailCounter
 
 class EmailAutoEmailSender:
-    def __init__(self, sender_email, sender_password):
+    def __init__(self, logging,sender_email, sender_password):
         self.sender_email = sender_email
         self.sender_password = sender_password
         self.email_send_status_dict = {}
+        self.logging=logging
+        self.eadEmailCounterObj=EmailAutoDomainEmailCounter(self.logging)
 
     def send_email(self, recipient_email, full_name, subject, body, attachment_path, domain_email_count, domain_limit):
         try:
-            if EmailAutoDomainEmailCounter.is_domain_limit_exceeded(domain_email_count, recipient_email, domain_limit):
+            if self.eadEmailCounterObj.is_domain_limit_exceeded(domain_email_count, recipient_email, domain_limit):
                 domain = recipient_email.split('@')[-1]
                 error_message = f"Domain Email Limit Exceeded for {domain}. Limit: {domain_limit}/day."
                 logging.error(error_message)
@@ -48,7 +50,7 @@ class EmailAutoEmailSender:
             logging.info(f"Email sent to {recipient_email}")
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-            EmailAutoDomainEmailCounter.write_domain_email_count(domain_email_count)
+            self.eadEmailCounterObj.write_domain_email_count(domain_email_count)
 
             return {
                 'FullName': full_name,
