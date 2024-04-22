@@ -1,4 +1,3 @@
-
 # Email Automator
 
 The Email Automator is a Python program designed to automate the process of sending personalized emails to multiple recipients. It provides a flexible and customizable solution for various email automation needs.
@@ -69,6 +68,17 @@ DOMAIN_LIMIT=5
 - `os`: For interacting with the operating system.
 - `logging`: For logging actions, errors, and warnings.
 
+## Future Enhancements
+
+- **Email Scheduler**: Implement a scheduler to send emails at specific times or intervals.
+- **Email Template Editor**: Develop a GUI tool for designing and editing email templates.
+- **Integration with CRM Systems**: Integrate with CRM systems to fetch recipient data directly.
+- **Advanced Error Handling**: Enhance error handling mechanisms to provide more detailed feedback and suggestions for troubleshooting.
+- **Multi-threading Support**: Add support for multi-threading to improve email sending performance for large recipient lists.
+- **Interactive CLI**: Create an interactive command-line interface for easier configuration and monitoring of the email sending process.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Feel free to contribute or suggest additional features!
