@@ -8,19 +8,28 @@ from datetime import datetime
 from email_auto_domain_email_counter import EmailAutoDomainEmailCounter
 
 class EmailAutoEmailSender:
-    def __init__(self, logging,sender_email, sender_password):
+    def __init__(self, logging, sender_email, sender_password):
         self.sender_email = sender_email
         self.sender_password = sender_password
-        self.email_send_status_dict = {}
-        self.logging=logging
-        self.eadEmailCounterObj=EmailAutoDomainEmailCounter(self.logging)
+        self.logging = logging
+        self.eadEmailCounterObj = EmailAutoDomainEmailCounter(self.logging)
+
+    def logINFO(self, message):
+        self.logging.info(f"[{self.__class__.__name__}] {message}")
+
+    def logERROR(self, message):
+        self.logging.error(f"[{self.__class__.__name__}] {message}")
+
+    def logWARNING(self, message):
+        self.logging.warning(f"[{self.__class__.__name__}] {message}")
+
 
     def send_email(self, recipient_email, full_name, subject, body, attachment_path, domain_email_count, domain_limit):
         try:
             if self.eadEmailCounterObj.is_domain_limit_exceeded(domain_email_count, recipient_email, domain_limit):
                 domain = recipient_email.split('@')[-1]
                 error_message = f"Domain Email Limit Exceeded for {domain}. Limit: {domain_limit}/day."
-                logging.error(error_message)
+                self.logERROR(error_message)
                 return {
                     'FullName': full_name,
                     'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -47,7 +56,7 @@ class EmailAutoEmailSender:
                 server.login(self.sender_email, self.sender_password)
                 server.send_message(message)
 
-            logging.info(f"Email sent to {recipient_email}")
+            self.logINFO(f"Email sent to {recipient_email}")
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
             self.eadEmailCounterObj.write_domain_email_count(domain_email_count)
@@ -63,19 +72,19 @@ class EmailAutoEmailSender:
             }
         except smtplib.SMTPAuthenticationError as e:
             error_message = f"SMTP authentication error: {e}"
-            logging.error(error_message)
+            self.logERROR(error_message)
             return self.handle_send_error(recipient_email, full_name, error_message)
         except smtplib.SMTPException as e:
             error_message = f"SMTP error: {e}"
-            logging.error(error_message)
+            self.logERROR(error_message)
             return self.handle_send_error(recipient_email, full_name, error_message)
         except Exception as e:
             error_message = f"Error sending email to {recipient_email}: {e}"
-            logging.error(error_message)
+            self.logERROR(error_message)
             return self.handle_send_error(recipient_email, full_name, error_message)
 
     def handle_send_error(self, recipient_email, full_name, error_message):
-        logging.error(error_message)
+        self.logERROR(error_message)
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         return {
             'FullName': full_name,
