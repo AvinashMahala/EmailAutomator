@@ -9,7 +9,8 @@ import time
 from email_auto_domain_email_counter import EmailAutoDomainEmailCounter
 
 class EmailAutoEmailSender:
-    RETRY_MINUTES=60
+    RETRY_MINUTES=120
+    NEXT_WAIT=10
     def __init__(self, logging, sender_email, sender_password):
         self.sender_email = sender_email
         self.sender_password = sender_password
@@ -22,6 +23,11 @@ class EmailAutoEmailSender:
         time.sleep(wait_time_seconds)
         self.logINFO("Retry initiated.")
         print("Retry initiated.")
+
+    def wait_and_next(self, wait_time_seconds):
+        self.logINFO(f"Waiting for {wait_time_seconds} seconds before Next...")
+        print(f"Waiting for {wait_time_seconds} seconds before Next...")
+        time.sleep(wait_time_seconds)
 
     def logINFO(self, message):
         self.logging.info(f"[{self.__class__.__name__}] {message}")
@@ -65,7 +71,7 @@ class EmailAutoEmailSender:
                     'delivery_duration': '0 seconds'
                 }
                 
-            message = MIMEMultipart()
+            message = MIMEMultipart('alternative')
             message['From'] = self.sender_email
             message['To'] = recipient_email
             message['Subject'] = subject
@@ -85,6 +91,7 @@ class EmailAutoEmailSender:
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
             self.eadEmailCounterObj.write_domain_email_count(domain_email_count)
+            self.wait_and_next(self.NEXT_WAIT)
 
             return {
                 'FullName': full_name,

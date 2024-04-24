@@ -149,9 +149,9 @@ class EmailAutoMainExecutor:
                 # Update email send status to CSV after processing each email
                 eaCSVMgrObj.write_email_send_status()
 
-                # status = eaEmailSenderObj.send_email(recipient_email, full_name, self.email_subject,
-                #                                      self.email_body_template, self.attachment_path,
-                #                                      domain_email_count, self.domain_limit)
+                status = eaEmailSenderObj.send_email(recipient_email, full_name, self.email_subject,
+                                                     self.email_body_template, self.attachment_path,
+                                                     domain_email_count, self.domain_limit)
 
                 email_send_status_dict[recipient_email] = status
                 eaCSVMgrObj.write_email_send_status()
