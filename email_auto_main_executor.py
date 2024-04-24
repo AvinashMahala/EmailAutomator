@@ -7,6 +7,7 @@ from email_auto_csv_manager import EmailAutoCSVManager
 from email_auto_domain_blacklist import EmailAutoDomainBlacklist
 from email_auto_domain_email_counter import EmailAutoDomainEmailCounter
 from email_auto_email_sender import EmailAutoEmailSender
+from email_auto_email_stats import EmailAutoEmailStats
 from email_auto_logger import EmailAutoLogger
 from email_auto_file_manager import EmailAutoFileManager
 
@@ -57,6 +58,15 @@ class EmailAutoMainExecutor:
 
         domain_blacklist = EmailAutoDomainBlacklist(self.logging, self.blacklist_file)
         blacklist_domains = domain_blacklist.read_blacklist_domains()
+        self.email_send_status_file = 'emailSendStatus.csv'
+        self.domain_email_recipients_file = 'recipients.csv'
+        self.eaEmailStatsObj= EmailAutoEmailStats(self.email_send_status_file,self.domain_email_recipients_file)
+        self.eaEmailStatsObj.print_email_info()
+
+        self.totalEmailCount=self.eaEmailStatsObj.get_total_emails()
+        self.failedCount=self.eaEmailStatsObj.get_failed_emails()
+        self.pendingCount=self.eaEmailStatsObj.get_pending_emails()
+        self.successCount=self.eaEmailStatsObj.success_emails_count()
 
         with open(self.recipientsFile, 'r') as file:
             reader = csv.DictReader(file)
@@ -65,11 +75,14 @@ class EmailAutoMainExecutor:
                 recipient_email = row['emailId']
 
                 self.start_action(f"processing email to {recipient_email}")
+                self.start_action(f"Processing Email: {self.pendingCount+1}/{self.totalEmailCount}")
 
                 # Check if recipient's domain is in the blacklist
                 recipient_domain = recipient_email.split('@')[-1]
                 if recipient_domain in blacklist_domains:
                     self.logWARNING(f"Skipping email to {recipient_email} as the domain is in the blacklist.")
+                    print(f"Skipping email to {recipient_email} as the domain is in the blacklist.")
+                    self.pendingCount+=1
                     continue
                 
                 domain_email_count = domain_email_counter.track_domain_email_count(email_send_status_dict,recipient_email, domain_email_count)
@@ -82,17 +95,24 @@ class EmailAutoMainExecutor:
                     status = email_send_status_dict[recipient_email]['send_status']
                     if status == 'success':
                         self.logWARNING(f"Email {recipient_email} has already been successfully sent.")
+                        print(f"Email {recipient_email} has already been successfully sent.")
+                        self.pendingCount+=1
                         continue
                     elif status == 'failure':
                         self.logWARNING(f"Email {recipient_email} has already failed to send.")
+                        print(f"Email {recipient_email} has already failed to send.")
                         # Retry sending the email
                         try:
                             first_name = full_name.split()[0]
-                            self.email_body_template = self.email_body_template.replace('[Placeholder]', first_name)
+                            self.email_body_template_replaced=self.email_body_template.replace('[Placeholder]', first_name)
+                            first_line = self.email_body_template_replaced.split('\n')[0]
+                            self.logINFO(f"First line of body: {first_line}")
+                            print(f"First line of body: {first_line}")
                             status = eaEmailSenderObj.send_email(recipient_email, full_name, self.email_subject,
-                                                     self.email_body_template, self.attachment_path,
+                                                     self.email_body_template_replaced, self.attachment_path,
                                                      domain_email_count, self.domain_limit)
                             email_send_status_dict[recipient_email] = status
+                            self.pendingCount+=1
                         except Exception as e:
                             error_message = f"Error sending email to {recipient_email}: {e}"
                             print(error_message)
@@ -100,24 +120,32 @@ class EmailAutoMainExecutor:
                             email_send_status_dict[recipient_email] = 'failure'
                         # Update email send status to CSV
                         eaCSVMgrObj.write_email_send_status()
+                        self.pendingCount+=1
                         continue
                     else:
                         self.logWARNING(f"Unknown status for email {recipient_email}: {status}")
+                        print(f"Unknown status for email {recipient_email}: {status}")
+                        self.pendingCount+=1
                         continue
                 # Email has not been sent before, send it
                 try:
                     first_name = full_name.split()[0]
-                    self.email_body_template = self.email_body_template.replace('[Placeholder]', first_name)
+                    self.email_body_template_replaced=self.email_body_template.replace('[Placeholder]', first_name)
+                    first_line = self.email_body_template_replaced.split('\n')[0]
+                    self.logINFO(f"First line of body: {first_line}")
+                    print(f"First line of body: {first_line}")
                     status = eaEmailSenderObj.send_email(recipient_email, full_name, self.email_subject,
-                                                     self.email_body_template, self.attachment_path,
+                                                     self.email_body_template_replaced, self.attachment_path,
                                                      domain_email_count, self.domain_limit)
                     email_send_status_dict[recipient_email] = status
                     self.logINFO(f"Status for email {recipient_email}: {status}")
+                    self.pendingCount+=1
                 except Exception as e:
                     error_message = f"Error sending email to {recipient_email}: {e}"
                     print(error_message)
                     self.action_failed("sending email", error_message)
                     email_send_status_dict[recipient_email] = 'failure'
+                    self.pendingCount+=1
                 # Update email send status to CSV after processing each email
                 eaCSVMgrObj.write_email_send_status()
 
@@ -155,10 +183,17 @@ class EmailAutoMainExecutor:
         self.logging.warning(f"[{self.__class__.__name__}] {message}")
 
     def start_action(self, action_name):
-        self.logINFO(f"Starting {action_name}...")
+        log_message = f"Starting {action_name}..."
+        self.logINFO(log_message)
+        print(log_message)
 
     def action_done(self, action_name):
-        self.logINFO(f"{action_name} completed successfully.")
+        log_message = f"{action_name} completed successfully."
+        self.logINFO(log_message)
+        print(log_message)
 
     def action_failed(self, action_name, error_message):
-        self.logERROR(f"{action_name} failed: {error_message}")
+        log_message = f"{action_name} failed: {error_message}"
+        self.logERROR(log_message)
+        print(log_message)
+

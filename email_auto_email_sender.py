@@ -9,7 +9,7 @@ import time
 from email_auto_domain_email_counter import EmailAutoDomainEmailCounter
 
 class EmailAutoEmailSender:
-    RETRY_MINUTES=120
+    RETRY_MINUTES=60
     def __init__(self, logging, sender_email, sender_password):
         self.sender_email = sender_email
         self.sender_password = sender_password
@@ -18,8 +18,10 @@ class EmailAutoEmailSender:
     
     def wait_and_retry(self, wait_time_seconds):
         self.logINFO(f"Waiting for {wait_time_seconds} seconds before retrying...")
+        print(f"Waiting for {wait_time_seconds} seconds before retrying...")
         time.sleep(wait_time_seconds)
         self.logINFO("Retry initiated.")
+        print("Retry initiated.")
 
     def logINFO(self, message):
         self.logging.info(f"[{self.__class__.__name__}] {message}")
@@ -31,13 +33,19 @@ class EmailAutoEmailSender:
         self.logging.warning(f"[{self.__class__.__name__}] {message}")
 
     def start_action(self, action_name):
-        self.logINFO(f"Starting {action_name}...")
+        log_message = f"Starting {action_name}..."
+        self.logINFO(log_message)
+        print(log_message)
 
     def action_done(self, action_name):
-        self.logINFO(f"{action_name} completed successfully.")
+        log_message = f"{action_name} completed successfully."
+        self.logINFO(log_message)
+        print(log_message)
 
     def action_failed(self, action_name, error_message):
-        self.logERROR(f"{action_name} failed: {error_message}")
+        log_message = f"{action_name} failed: {error_message}"
+        self.logERROR(log_message)
+        print(log_message)
 
     def send_email(self, recipient_email, full_name, subject, body, attachment_path, domain_email_count, domain_limit):
         try:
@@ -46,6 +54,7 @@ class EmailAutoEmailSender:
                 domain = recipient_email.split('@')[-1]
                 error_message = f"Domain Email Limit Exceeded for {domain}. Limit: {domain_limit}/day."
                 self.logERROR(error_message)
+                print(error_message)
                 return {
                     'FullName': full_name,
                     'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
