@@ -21,13 +21,19 @@ class EmailAutoDomainEmailCounter:
         self.logging.warning(f"[{self.__class__.__name__}] {message}")
 
     def start_action(self, action_name):
-        self.logINFO(f"Starting {action_name}...")
+        log_message = f"Starting {action_name}..."
+        self.logINFO(log_message)
+        print(log_message)
 
     def action_done(self, action_name):
-        self.logINFO(f"{action_name} completed successfully.")
+        log_message = f"{action_name} completed successfully."
+        self.logINFO(log_message)
+        print(log_message)
 
     def action_failed(self, action_name, error_message):
-        self.logERROR(f"{action_name} failed: {error_message}")
+        log_message = f"{action_name} failed: {error_message}"
+        self.logERROR(log_message)
+        print(log_message)
 
     def read_domain_email_count(self):
         domain_email_count = {}
