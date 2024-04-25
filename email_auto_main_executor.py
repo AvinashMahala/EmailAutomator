@@ -11,6 +11,7 @@ from email_auto_email_sender import EmailAutoEmailSender
 from email_auto_email_stats import EmailAutoEmailStats
 from email_auto_logger import EmailAutoLogger
 from email_auto_file_manager import EmailAutoFileManager
+from email_auto_repeated_elements_checker import RepeatedElementsChecker
 
 class EmailAutoMainExecutor:
     def generate_pattern(pattern, repetitions):
@@ -43,7 +44,8 @@ class EmailAutoMainExecutor:
 
         self.sender_email = os.getenv('SENDER_EMAIL')
         self.sender_password = os.getenv('SENDER_PASSWORD')
-        self.recipientsFile = os.getenv('RECIPIENTS_FILE_PATH')
+        self.recipientsFileOrig= os.getenv('RECIPIENTS_FILE_PATH')
+        self.recipientsFile = self.recipientsFileOrig
         self.email_subject_file = os.getenv('EMAIL_SUBJECT_FILE')
         self.email_body_file = os.getenv('EMAIL_BODY_FILE')
         self.attachment_path = os.getenv('ATTACHMENT_PATH')
@@ -72,7 +74,7 @@ class EmailAutoMainExecutor:
         # Copy recipientsFile to recipient folder if not present already
         output_recipients_file = os.path.join(recipient_directory, os.path.basename(self.recipientsFile))
         if not os.path.exists(output_recipients_file):
-            shutil.copy(self.recipientsFile, recipient_directory)
+            shutil.copy(self.recipientsFileOrig, recipient_directory)
 
 
         # Use the corresponding created SendStatus csv file
@@ -104,7 +106,7 @@ class EmailAutoMainExecutor:
 
         self.totalEmailCount=self.eaEmailStatsObj.get_total_emails()
         self.failedCount=self.eaEmailStatsObj.get_failed_emails()
-        self.pendingCount=self.eaEmailStatsObj.get_pending_emails()
+        self.pendingCount=0
         self.successCount=self.eaEmailStatsObj.success_emails_count()
 
         with open(self.recipientsFile, 'r') as file:
@@ -210,31 +212,40 @@ class EmailAutoMainExecutor:
 
         print("\nEmail sending process completed.\n")
         self.logINFO("Email sending process completed.")
-        self.logINFO(self.PATTERN3)
+        print(self.PATTERN3)
         self.eaEmailStatsObj.print_email_info()
-        self.logINFO(self.PATTERN4)
+        print(self.PATTERN4)
+        recObj=RepeatedElementsChecker()
+
+        print(f"Has Duplicates? : {recObj.has_duplicate_rows(self.recipientsFile)}")
+        print(f"Total No. Of Duplicates: {recObj.count_duplicate_rows(self.recipientsFile)}")
+        print(self.PATTERN1)
+
 
     def logINFO(self, message):
         self.logging.info(f"[{self.__class__.__name__}] {message}")
+        print(f"[{self.__class__.__name__}] {message}")
 
     def logERROR(self, message):
         self.logging.error(f"[{self.__class__.__name__}] {message}")
+        print(f"[{self.__class__.__name__}] {message}")
 
     def logWARNING(self, message):
         self.logging.warning(f"[{self.__class__.__name__}] {message}")
+        print(f"[{self.__class__.__name__}] {message}")
 
     def start_action(self, action_name):
         log_message = f"Starting {action_name}..."
         self.logINFO(log_message)
-        print(log_message)
+        # print(log_message)
 
     def action_done(self, action_name):
         log_message = f"{action_name} completed successfully."
         self.logINFO(log_message)
-        print(log_message)
+        # print(log_message)
 
     def action_failed(self, action_name, error_message):
         log_message = f"{action_name} failed: {error_message}"
         self.logERROR(log_message)
-        print(log_message)
+        # print(log_message)
 

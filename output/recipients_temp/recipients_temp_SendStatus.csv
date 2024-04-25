@@ -1,0 +1,7 @@
+emailId,FullName,timestamp,send_status,delivery_status_code,retry_count,error_message,delivery_duration
+avinash.mahala.am@outlook.com,Avinash,2024-04-25 01:05:47,success,Delivered,0,,0 seconds
+avinash.mahala1.am@outlook.com,Avinash,2024-04-25 01:06:21,success,Delivered,0,,0 seconds
+avinash.mahala2.am@outlook.com,Avinash,2024-04-25 01:06:55,success,Delivered,0,,0 seconds
+avinash.mahala3.am@outlook.com,Avinash,2024-04-25 01:07:29,success,Delivered,0,,0 seconds
+avinash.mahala4.am@outlook.com,Avinash,2024-04-25 01:08:05,success,Delivered,0,,0 seconds
+avinash.mahala5.am@outlook.com,Avinash,2024-04-25 01:08:39,success,Delivered,0,,0 seconds
