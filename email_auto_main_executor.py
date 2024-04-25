@@ -1,6 +1,7 @@
 import csv
 import os
 import logging
+import shutil
 from tabulate import tabulate
 from dotenv import load_dotenv
 from email_auto_csv_manager import EmailAutoCSVManager
@@ -27,6 +28,11 @@ class EmailAutoMainExecutor:
         self.logINFO("Email sending process started.")
         print("\nEmail sending process started.\n")
 
+        # Create output directory if not exists
+        output_directory = 'output'
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+
         # Load environment variables from .env file
         try:
             load_dotenv()
@@ -43,6 +49,40 @@ class EmailAutoMainExecutor:
         self.attachment_path = os.getenv('ATTACHMENT_PATH')
         self.domain_limit = int(os.getenv('DOMAIN_LIMIT', 10))-1
         self.blacklist_file = os.getenv('BLACKLIST_FILE_PATH')  # Path to the blacklist file
+        # self.email_send_status_file=os.getenv('EMAIL_SEND_STATUS_FILE_PATH')
+
+        # Set recipients file path to the one in the output directory
+        output_directory = 'output'
+        recipients_file_name = os.path.basename(self.recipientsFile)
+        output_recipients_file = os.path.join(output_directory, recipients_file_name.split('.')[0], recipients_file_name)
+
+        # Use the copied recipients file from the output directory
+        self.recipientsFile = output_recipients_file
+
+        # Set email send status file name
+        recipients_file_name = os.path.basename(self.recipientsFile)
+        send_status_file_name = recipients_file_name.split('.')[0] + '_SendStatus.csv'
+        self.email_send_status_file = os.path.join(output_directory, recipients_file_name.split('.')[0], send_status_file_name)
+
+        # Create directory for recipient files if not exists
+        recipient_directory = os.path.join(output_directory, recipients_file_name.split('.')[0])
+        if not os.path.exists(recipient_directory):
+            os.makedirs(recipient_directory)
+        
+        # Copy recipientsFile to recipient folder if not present already
+        output_recipients_file = os.path.join(recipient_directory, os.path.basename(self.recipientsFile))
+        if not os.path.exists(output_recipients_file):
+            shutil.copy(self.recipientsFile, recipient_directory)
+
+
+        # Use the corresponding created SendStatus csv file
+        if not os.path.exists(self.email_send_status_file):
+            with open(self.email_send_status_file, 'w', newline='') as csvfile:
+                fieldnames = ['emailId', 'FullName', 'timestamp', 'send_status', 'delivery_status_code', 'retry_count', 'error_message', 'delivery_duration']
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+
+        self.domain_email_count_file = os.getenv('DOMAIN_EMAIL_COUNT_CSV_FILE_PATH')
 
         self.eaFileMgrObj = EmailAutoFileManager(self.logging)
 
@@ -50,7 +90,7 @@ class EmailAutoMainExecutor:
         self.email_body_template = self.eaFileMgrObj.read_file(self.email_body_file).strip()
 
         self.error_messages = []
-        eaCSVMgrObj = EmailAutoCSVManager(self.logging)
+        eaCSVMgrObj = EmailAutoCSVManager(self.logging,self.email_send_status_file,self.domain_email_count_file)
         email_send_status_dict = eaCSVMgrObj.read_email_send_status()
         eaEmailSenderObj = EmailAutoEmailSender(self.logging, self.sender_email, self.sender_password)
         domain_email_counter = EmailAutoDomainEmailCounter(self.logging)
@@ -58,8 +98,7 @@ class EmailAutoMainExecutor:
 
         domain_blacklist = EmailAutoDomainBlacklist(self.logging, self.blacklist_file)
         blacklist_domains = domain_blacklist.read_blacklist_domains()
-        self.email_send_status_file = 'emailSendStatus.csv'
-        self.domain_email_recipients_file = 'recipients.csv'
+        self.domain_email_recipients_file = self.recipientsFile
         self.eaEmailStatsObj= EmailAutoEmailStats(self.email_send_status_file,self.domain_email_recipients_file)
         self.eaEmailStatsObj.print_email_info()
 
@@ -172,6 +211,8 @@ class EmailAutoMainExecutor:
         print("\nEmail sending process completed.\n")
         self.logINFO("Email sending process completed.")
         self.logINFO(self.PATTERN3)
+        self.eaEmailStatsObj.print_email_info()
+        self.logINFO(self.PATTERN4)
 
     def logINFO(self, message):
         self.logging.info(f"[{self.__class__.__name__}] {message}")

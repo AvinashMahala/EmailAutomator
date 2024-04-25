@@ -5,9 +5,9 @@ import logging
 class EmailAutoCSVManager:
     EMAIL_SEND_STATUS_FIELDS = ['emailId', 'FullName', 'timestamp', 'send_status', 'delivery_status_code', 'retry_count', 'error_message', 'delivery_duration']
     
-    def __init__(self, logging):
-        self.email_send_status_file = 'emailSendStatus.csv'
-        self.domain_email_count_file = 'domainEmailCount.csv'
+    def __init__(self, logging,email_send_status_file,domain_email_count_file):
+        self.email_send_status_file = email_send_status_file
+        self.domain_email_count_file = domain_email_count_file
         self.email_send_status_dict = {}
         self.domain_email_count = {}
         self.logging = logging

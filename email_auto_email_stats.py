@@ -30,7 +30,7 @@ class EmailAutoEmailStats:
             for row in reader:
                 if row['send_status'] == 'success':
                     sent_emails += 1
-        pending_emails = sent_emails
+        pending_emails = total_emails-sent_emails
         self.successEmailsCount=sent_emails
         return pending_emails
 
