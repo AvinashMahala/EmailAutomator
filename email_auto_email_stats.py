@@ -1,10 +1,11 @@
 import csv
 
 class EmailAutoEmailStats:
-    def __init__(self, email_send_status_file, recipients_file):
+    def __init__(self, email_send_status_file, recipients_file,logging):
         self.email_send_status_file = email_send_status_file
         self.recipients_file = recipients_file
         self.successEmailsCount=0
+        self.logging=logging
 
     def get_failed_emails(self):
         failed_emails = 0
@@ -39,8 +40,11 @@ class EmailAutoEmailStats:
         failed_emails = self.get_failed_emails()
         pending_emails = self.get_pending_emails()
         print(f"Total emails: {total_emails}")
+        self.logging.info(f"Total emails: {total_emails}")
         print(f"Failed emails: {failed_emails}")
+        self.logging.info(f"Failed emails: {failed_emails}")
         print(f"Pending emails: {pending_emails}")
+        self.logging.info(f"Pending emails: {pending_emails}")
 
     def success_emails_count(self):
         return self.successEmailsCount

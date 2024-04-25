@@ -101,7 +101,7 @@ class EmailAutoMainExecutor:
         domain_blacklist = EmailAutoDomainBlacklist(self.logging, self.blacklist_file)
         blacklist_domains = domain_blacklist.read_blacklist_domains()
         self.domain_email_recipients_file = self.recipientsFile
-        self.eaEmailStatsObj= EmailAutoEmailStats(self.email_send_status_file,self.domain_email_recipients_file)
+        self.eaEmailStatsObj= EmailAutoEmailStats(self.email_send_status_file,self.domain_email_recipients_file,self.logging)
         self.eaEmailStatsObj.print_email_info()
 
         self.totalEmailCount=self.eaEmailStatsObj.get_total_emails()
@@ -114,9 +114,9 @@ class EmailAutoMainExecutor:
             for row in reader:
                 full_name = row['fullName']
                 recipient_email = row['emailId']
-
-                self.start_action(f"processing email to {recipient_email}")
+                self.logINFO(self.PATTERN2)
                 self.start_action(f"Processing Email: {self.pendingCount+1}/{self.totalEmailCount}")
+                self.start_action(f"processing email to {recipient_email}")
 
                 # Check if recipient's domain is in the blacklist
                 recipient_domain = recipient_email.split('@')[-1]
@@ -212,13 +212,19 @@ class EmailAutoMainExecutor:
 
         print("\nEmail sending process completed.\n")
         self.logINFO("Email sending process completed.")
+        self.logging.info(self.PATTERN3)
         print(self.PATTERN3)
         self.eaEmailStatsObj.print_email_info()
+        self.logging.info(self.PATTERN4)
         print(self.PATTERN4)
         recObj=RepeatedElementsChecker()
 
+        self.logging.info(self.PATTERN1)
         print(f"Has Duplicates? : {recObj.has_duplicate_rows(self.recipientsFile)}")
+        self.logging.info(f"Has Duplicates? : {recObj.has_duplicate_rows(self.recipientsFile)}")
         print(f"Total No. Of Duplicates: {recObj.count_duplicate_rows(self.recipientsFile)}")
+        self.logging.info(f"Total No. Of Duplicates: {recObj.count_duplicate_rows(self.recipientsFile)}")
+        self.logging.info(self.PATTERN1)
         print(self.PATTERN1)
 
 
