@@ -1,0 +1,4 @@
+emailId,FullName,timestamp,send_status,delivery_status_code,retry_count,error_message,delivery_duration
+hmcilrath@ymcaoc.org,Hannah,2024-04-25 01:43:59,success,Delivered,0,,0 seconds
+brie@integritypowersearch.com,Brie,2024-04-25 01:44:33,success,Delivered,0,,0 seconds
+prakash@linktr.ee,Prakash,2024-04-25 01:44:49,success,Delivered,0,,0 seconds
